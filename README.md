@@ -3,10 +3,6 @@ apk parser written in golang, aims to extract app information
 
 [![Build Status](https://travis-ci.org/phinexdaz/ipapk.svg?branch=master)](https://travis-ci.org/phinexdaz/ipapk)
 
-## 项目名称
-
-apk-parse
-
 ## 简介
 
 apk-parse项目是一个安卓apk文件解析器， 从apk文件中，获取以下信息
@@ -45,12 +41,11 @@ apk-parse 项目欢迎任何形式的贡献。如果您想要为该项目贡献�
 
 ### 许可
 
-该项目使用 （指定许可证），因此，请确保您已经了解该许可证的要求和限制。
-© zclwy, 2023 ~ now
+© zclwy, 2023 ~ now   [license](LICENSE)
 
 ## 参考资料
 
 以下是参考本项目的资料：
 
-- （列出参考资料）
+-  shogo82148/androidbinary
 
