@@ -1,4 +1,4 @@
-package apkparse
+package apkparser
 
 import (
 	"archive/zip"
@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"strings"
 
-	"apk-parser/androidbinary"
+	"apkparser/androidbinary"
 )
 
 const (

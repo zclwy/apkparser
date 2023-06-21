@@ -1,4 +1,4 @@
-package apkparse
+package apkparser
 
 import (
 	"image/png"
