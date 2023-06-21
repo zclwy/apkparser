@@ -1,4 +1,4 @@
-package androidbinary
+package apkparser
 
 import (
 	"archive/zip"
@@ -14,16 +14,16 @@ import (
 	"strconv"
 )
 
-// Apk is an application package file for android.
-type Apk struct {
-	f         *os.File
-	zipReader *zip.Reader
-	manifest  Manifest
-	table     *TableFile
+// apk is an application package file for android.
+type apk struct {
+	f           *os.File
+	zipReader   *zip.Reader
+	apkManifest apkManifest
+	table       *TableFile
 }
 
-// OpenFile will open the file specified by filename and return Apk
-func OpenFile(filename string) (apk *Apk, err error) {
+// openFile will open the file specified by filename and return apk
+func openFile(filename string) (apk *apk, err error) {
 	f, err := os.Open(filename)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func OpenFile(filename string) (apk *Apk, err error) {
 	if err != nil {
 		return nil, err
 	}
-	apk, err = OpenZipReader(f, fi.Size())
+	apk, err = openZipReader(f, fi.Size())
 	if err != nil {
 		return nil, err
 	}
@@ -40,17 +40,17 @@ func OpenFile(filename string) (apk *Apk, err error) {
 	return
 }
 
-// OpenZipReader has same arguments like zip.NewReader
-func OpenZipReader(r io.ReaderAt, size int64) (*Apk, error) {
+// openZipReader has same arguments like zip.NewReader
+func openZipReader(r io.ReaderAt, size int64) (*apk, error) {
 	zipReader, err := zip.NewReader(r, size)
 	if err != nil {
 		return nil, err
 	}
-	apk := &Apk{
+	apk := &apk{
 		zipReader: zipReader,
 	}
 	if err = apk.parseManifest(); err != nil {
-		return nil, errors.New("parse-manifest:" + err.Error())
+		return nil, errors.New("parse-apkManifest:" + err.Error())
 	}
 	if err = apk.parseResources(); err != nil {
 		return nil, err
@@ -58,17 +58,17 @@ func OpenZipReader(r io.ReaderAt, size int64) (*Apk, error) {
 	return apk, nil
 }
 
-// Close is avaliable only if apk is created with OpenFile
-func (k *Apk) Close() error {
+// close is avaliable only if apk is created with openFile
+func (k *apk) close() error {
 	if k.f == nil {
 		return nil
 	}
 	return k.f.Close()
 }
 
-// Icon returns the icon image of the APK.
-func (k *Apk) Icon(resConfig *ResTableConfig) (image.Image, error) {
-	iconPath := k.getResource(k.manifest.App.Icon, resConfig)
+// icon returns the icon image of the APK.
+func (k *apk) icon(resConfig *ResTableConfig) (image.Image, error) {
+	iconPath := k.getResource(k.apkManifest.App.Icon, resConfig)
 	if IsResID(iconPath) {
 		return nil, errors.New("unable to convert icon-id to icon path")
 	}
@@ -80,28 +80,28 @@ func (k *Apk) Icon(resConfig *ResTableConfig) (image.Image, error) {
 	return m, err
 }
 
-// Label returns the label of the APK.
-func (k *Apk) Label(resConfig *ResTableConfig) (s string, err error) {
-	s = k.getResource(k.manifest.App.Label, resConfig)
+// label returns the label of the APK.
+func (k *apk) label(resConfig *ResTableConfig) (s string, err error) {
+	s = k.getResource(k.apkManifest.App.Label, resConfig)
 	if IsResID(s) {
 		err = errors.New("unable to convert label-id to string")
 	}
 	return
 }
 
-// Manifest returns the manifest of the APK.
-func (k *Apk) Manifest() Manifest {
-	return k.manifest
+// manifest returns the apkManifest of the APK.
+func (k *apk) manifest() apkManifest {
+	return k.apkManifest
 }
 
-// PackageName returns the package name of the APK.
-func (k *Apk) PackageName() string {
-	return k.manifest.Package
+// packageName returns the package name of the APK.
+func (k *apk) packageName() string {
+	return k.apkManifest.Package
 }
 
-// MainActivity returns the name of the main activity.
-func (k *Apk) MainActivity() (activity string, err error) {
-	for _, act := range k.manifest.App.Activities {
+// mainActivity returns the name of the main activity.
+func (k *apk) mainActivity() (activity string, err error) {
+	for _, act := range k.apkManifest.App.Activities {
 		for _, intent := range act.IntentFilters {
 			if intent.Action.Name == "android.intent.action.MAIN" &&
 				intent.Category.Name == "android.intent.category.LAUNCHER" {
@@ -109,7 +109,7 @@ func (k *Apk) MainActivity() (activity string, err error) {
 			}
 		}
 	}
-	for _, act := range k.manifest.App.ActivityAliases {
+	for _, act := range k.apkManifest.App.ActivityAliases {
 		for _, intent := range act.IntentFilters {
 			if intent.Action.Name == "android.intent.action.MAIN" &&
 				intent.Category.Name == "android.intent.category.LAUNCHER" {
@@ -121,10 +121,10 @@ func (k *Apk) MainActivity() (activity string, err error) {
 	return "", errors.New("no main activity found")
 }
 
-func (k *Apk) parseManifest() error {
+func (k *apk) parseManifest() error {
 	xmlData, err := k.readZipFile("AndroidManifest.xml")
 	if err != nil {
-		return errors.New("read-manifest.xml" + err.Error())
+		return errors.New("read-apkManifest.xml" + err.Error())
 	}
 	xmlFile, err := NewXMLFile(bytes.NewReader(xmlData))
 	if err != nil {
@@ -135,10 +135,10 @@ func (k *Apk) parseManifest() error {
 	if err != nil {
 		return err
 	}
-	return xml.Unmarshal(data, &k.manifest)
+	return xml.Unmarshal(data, &k.apkManifest)
 }
 
-func (k *Apk) parseResources() (err error) {
+func (k *apk) parseResources() (err error) {
 	resData, err := k.readZipFile("resources.arsc")
 	if err != nil {
 		return
@@ -147,7 +147,7 @@ func (k *Apk) parseResources() (err error) {
 	return
 }
 
-func (k *Apk) getResource(id string, resConfig *ResTableConfig) string {
+func (k *apk) getResource(id string, resConfig *ResTableConfig) string {
 	resID, err := ParseResID(id)
 	if err != nil {
 		return id
@@ -159,7 +159,7 @@ func (k *Apk) getResource(id string, resConfig *ResTableConfig) string {
 	return fmt.Sprintf("%s", val)
 }
 
-func (k *Apk) readZipFile(name string) (data []byte, err error) {
+func (k *apk) readZipFile(name string) (data []byte, err error) {
 	buf := bytes.NewBuffer(nil)
 	for _, file := range k.zipReader.File {
 		if file.Name != name {

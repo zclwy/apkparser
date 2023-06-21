@@ -14,8 +14,6 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
-
-	"apkparser/androidbinary"
 )
 
 const (
@@ -146,7 +144,7 @@ func parseAndroidManifest(xmlFile *zip.File) (*androidManifest, error) {
 		return nil, err
 	}
 
-	xmlContent, err := androidbinary.NewXMLFile(bytes.NewReader(buf))
+	xmlContent, err := NewXMLFile(bytes.NewReader(buf))
 	if err != nil {
 		return nil, err
 	}
@@ -162,19 +160,19 @@ func parseAndroidManifest(xmlFile *zip.File) (*androidManifest, error) {
 
 // 解析apk图标和名称
 func parseApkIconAndLabel(name string) (image.Image, string, error) {
-	pkg, err := androidbinary.OpenFile(name)
+	pkg, err := openFile(name)
 	if err != nil {
 		return nil, "", err
 	}
 	defer func() {
-		_ = pkg.Close()
+		_ = pkg.close()
 	}()
 
-	icon, _ := pkg.Icon(&androidbinary.ResTableConfig{
+	icon, _ := pkg.icon(&ResTableConfig{
 		Density: 720,
 	})
 
-	label, _ := pkg.Label(nil)
+	label, _ := pkg.label(nil)
 
 	return icon, label, nil
 }

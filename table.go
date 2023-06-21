@@ -1,4 +1,4 @@
-package androidbinary
+package apkparser
 
 import (
 	"encoding/binary"
