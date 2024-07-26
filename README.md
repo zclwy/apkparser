@@ -2,7 +2,8 @@
 
 apk parser written in golang, aims to extract app information
 
-[![Build Status](https://travis-ci.org/phinexdaz/ipapk.svg?branch=master)](https://travis-ci.org/phinexdaz/ipapk)
+[![GoDoc](https://pkg.go.dev/badge/github.com/zclwy/apkparser)](https://pkg.go.dev/github.com/zclwy/apkparser)
+[![Go](https://github.com/zclwy/apkparser/actions/workflows/go.yml/badge.svg)](https://github.com/zclwy/apkparser/actions/workflows/go.yml)
 
 ## 简介
 
