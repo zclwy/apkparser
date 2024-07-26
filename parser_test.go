@@ -1,6 +1,7 @@
 package apkparser
 
 import (
+	"fmt"
 	"image/png"
 	"log"
 	"os"
@@ -9,9 +10,14 @@ import (
 
 func TestNewAppParser(t *testing.T) {
 	apkFile := "testdata/helloworld.apk"
-	app, err := NewAppParser(apkFile, "keytool")
-	t.Log(app)
-	t.Log(err)
+	app, err := NewAppParser(apkFile)
+	if err != nil {
+		t.Log(err)
+		return
+	}
+	fmt.Printf("BundleId: %v\n", app.BundleId)
+	fmt.Printf("Md5: %v\n", app.Md5)
+	fmt.Printf("Signature md5: %v\n", app.CertInfo.Md5)
 
 	if app.Icon != nil {
 		// 生成png的icon

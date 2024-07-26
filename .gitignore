@@ -1,2 +1,3 @@
 .idea
-testdata/*.png
+testdata/*
+!testdata/helloword.apk

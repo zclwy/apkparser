@@ -4,16 +4,22 @@ import (
 	"archive/zip"
 	"bytes"
 	"crypto/md5"
+	"crypto/x509"
+	"encoding/pem"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"image"
 	"io"
+	"log"
+	"math/big"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/avast/apkverifier"
 )
 
 const (
@@ -27,19 +33,33 @@ type AppInfo struct {
 	Build       int         // 版本号
 	Icon        image.Image // app icon
 	Size        int64       // app size in bytes
-	Signature   string      // app sign
+	CertInfo    CertInfo    // app 证书信息
 	Md5         string      // app md5
 	SupportOS64 bool        // 是否支持64位
 	SupportOS32 bool        // 是否支持32位
+	Permissions []string    // 权限列表
+}
+type CertInfo struct {
+	Md5                string
+	Sha1               string
+	Sha256             string
+	ValidFrom, ValidTo time.Time
+	Issuer, Subject    string
+	SignatureAlgorithm string
+	SerialNumber       *big.Int
 }
 
 type androidManifest struct {
-	Package     string `xml:"package,attr"`
-	VersionName string `xml:"versionName,attr"`
-	VersionCode string `xml:"versionCode,attr"`
+	Package     string       `xml:"package,attr"`
+	VersionName string       `xml:"versionName,attr"`
+	VersionCode string       `xml:"versionCode,attr"`
+	Permissions []Permission `xml:"uses-permission"`
+}
+type Permission struct {
+	Name string `xml:"name,attr"`
 }
 
-func NewAppParser(name, keyToolPath string) (*AppInfo, error) {
+func NewAppParser(name string) (*AppInfo, error) {
 	file, err := os.Open(name)
 	if err != nil {
 		return nil, err
@@ -86,16 +106,15 @@ func NewAppParser(name, keyToolPath string) (*AppInfo, error) {
 		return nil, errParse
 	}
 	// 当前apk支持的系统位数
-	if hasSoFile == false && supportOS64 == false && supportOS32 == false {
+	if !hasSoFile && !supportOS64 && !supportOS32 {
 		info.SupportOS64 = true
 		info.SupportOS32 = true
 	} else {
 		info.SupportOS64 = supportOS64
 		info.SupportOS32 = supportOS32
 	}
-	apkMd5, _ := getApkMd5(file)
-	info.Md5 = apkMd5
-	info.Signature = getSignature(name, keyToolPath)
+	info.Md5, _ = getApkMd5(file)
+	info.CertInfo, _ = getSignature(name)
 
 	icon, label, errExtra := parseApkIconAndLabel(name)
 	if errExtra != nil {
@@ -125,6 +144,10 @@ func parseApkFile(xmlFile *zip.File) (*AppInfo, error) {
 	info.BundleId = manifest.Package
 	info.Version = manifest.VersionName
 	info.Build = versionCode
+
+	for _, v := range manifest.Permissions {
+		info.Permissions = append(info.Permissions, v.Name)
+	}
 
 	return info, nil
 }
@@ -188,36 +211,68 @@ func getApkMd5(file *os.File) (string, error) {
 }
 
 // 获取apk签名
-func getSignature(apkPath, keyToolPath string) string {
-	if apkPath == "" || keyToolPath == "" {
-		return ""
-	}
-	keytoolCmd := exec.Command(keyToolPath, "-printcert", "-jarfile", apkPath)
-
-	// 设置管道连接各个命令
-	var (
-		output     bytes.Buffer
-		result     string
-		signString = "MD5:"
-	)
-	keytoolCmd.Stdout = &output
-	// 运行命令
-	if errRun := keytoolCmd.Run(); errRun != nil {
-		return ""
+func getSignature(apkPath string) (CertInfo, error) {
+	res, err := apkverifier.Verify(apkPath, nil)
+	if err != nil {
+		return CertInfo{}, err
 	}
 
-	// 将字符串拆分成多行
-	lines := strings.Split(output.String(), "\n")
-	// 匹配规则：包含字符串 "MD5:"
-	for _, line := range lines {
-		if strings.Contains(line, signString) {
-			_, result, _ = strings.Cut(line, signString)
-			break
-		}
+	cert, _ := apkverifier.PickBestApkCert(res.SignerCerts)
+	if cert == nil {
+		return CertInfo{}, errors.New("No certificate found")
 	}
-	// 将匹配结果拼接成一个新的字符串
-	result = strings.Replace(result, " ", "", -1)
-	result = strings.Replace(result, ":", "", -1)
 
-	return strings.ToLower(result)
+	return CertInfo{
+		Md5:                cert.Md5,
+		Sha1:               cert.Sha1,
+		Sha256:             cert.Sha256,
+		ValidFrom:          cert.ValidFrom,
+		ValidTo:            cert.ValidTo,
+		Issuer:             cert.Issuer,
+		Subject:            cert.Subject,
+		SignatureAlgorithm: cert.SignatureAlgorithm,
+		SerialNumber:       cert.SerialNumber,
+	}, nil
+}
+
+func parseSignature(f *zip.File) {
+	rc, err := f.Open()
+	if err != nil {
+		log.Printf("failed to open file %s: %v", f.Name, err)
+		return
+	}
+	defer rc.Close()
+
+	// 读取签名文件内容
+	content, err := io.ReadAll(rc)
+	if err != nil {
+		log.Printf("failed to read file %s: %v", f.Name, err)
+		return
+	}
+
+	// 解码 PEM 数据
+	block, _ := pem.Decode(content)
+	if block == nil {
+		log.Printf("failed to decode PEM block from file %s", f.Name)
+		return
+	}
+
+	// 解析证书
+	certs, err := x509.ParseCertificates(content)
+	if err != nil {
+		log.Printf("failed to parse certificate from file %s: %v", f.Name, err)
+		return
+	}
+
+	// 打印签名信息
+	for _, cert := range certs {
+		fmt.Printf("Certificate Subject: %s\n", cert.Subject)
+		fmt.Printf("Issuer: %s\n", cert.Issuer)
+		fmt.Printf("Serial Number: %s\n", cert.SerialNumber)
+		fmt.Printf("Not Before: %s\n", cert.NotBefore)
+		fmt.Printf("Not After: %s\n", cert.NotAfter)
+		fmt.Printf("Signature Algorithm: %s\n", cert.SignatureAlgorithm)
+		fmt.Printf("Public Key Algorithm: %s\n", cert.PublicKeyAlgorithm)
+	}
+
 }
