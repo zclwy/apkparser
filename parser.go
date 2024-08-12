@@ -27,26 +27,28 @@ const (
 )
 
 type AppInfo struct {
-	Name        string      // 应用名称
-	BundleId    string      // 包名
-	Version     string      // 版本名称
-	Build       int         // 版本号
-	Icon        image.Image // app icon
-	Size        int64       // app size in bytes
-	CertInfo    CertInfo    // app 证书信息
-	Md5         string      // app md5
-	SupportOS64 bool        // 是否支持64位
-	SupportOS32 bool        // 是否支持32位
-	Permissions []string    // 权限列表
+	Name        string      `json:"name,omitempty"`        // 应用名称
+	BundleId    string      `json:"bundleId,omitempty"`    // 包名
+	Version     string      `json:"version,omitempty"`     // 版本名称
+	Build       int         `json:"build,omitempty"`       // 版本号
+	Icon        image.Image `json:"icon,omitempty"`        // app icon
+	Size        int64       `json:"size,omitempty"`        // app size in bytes
+	CertInfo    CertInfo    `json:"certInfo,omitempty"`    // app 证书信息
+	Md5         string      `json:"md5,omitempty"`         // app md5
+	SupportOS64 bool        `json:"supportOS64,omitempty"` // 是否支持64位
+	SupportOS32 bool        `json:"supportOS32,omitempty"` // 是否支持32位
+	Permissions []string    `json:"permissions,omitempty"` // 权限列表
 }
 type CertInfo struct {
-	Md5                string
-	Sha1               string
-	Sha256             string
-	ValidFrom, ValidTo time.Time
-	Issuer, Subject    string
-	SignatureAlgorithm string
-	SerialNumber       *big.Int
+	Md5                string    `json:"md5,omitempty"`
+	Sha1               string    `json:"sha1,omitempty"`
+	Sha256             string    `json:"sha256,omitempty"`
+	ValidFrom          time.Time `json:"validFrom,omitempty"`
+	ValidTo            time.Time `json:"validTo,omitempty"`
+	Issuer             string    `json:"issuer,omitempty"`
+	Subject            string    `json:"subject,omitempty"`
+	SignatureAlgorithm string    `json:"signatureAlgorithm,omitempty"`
+	SerialNumber       *big.Int  `json:"serialNumber,omitempty"`
 }
 
 type androidManifest struct {

@@ -7,30 +7,41 @@ apk parser written in golang, aims to extract app information
 
 ## 简介
 
-`apkparser` 项目是一个安卓`apk`文件解析器， 从`apk`文件中，获取以下信息
+`apkparser` 项目是一个安卓`apk`文件解析器， 从`apk`文件中，获取 `AppInfo`
 
-1. name - app 名称
-1. BundleId - app 包名
-1. Version - app 版本名称
-1. Build - app 版本号
-1. Icon - app 图标
-1. Size - app 大小
-1. CertInfo - app 签名
-    1. Md5
-    2. Sha1
-    3. Sha256
-    4. ...
-1. Md5 - app md5
-1. SupportOS64 - 是否支持 64 位操作系统
-1. SupportOS32 - 是否支持 32 位操作系统
-1. Permissions
+```
+type AppInfo struct {
+	Name        string      `json:"name,omitempty"`        // 应用名称
+	BundleId    string      `json:"bundleId,omitempty"`    // 包名
+	Version     string      `json:"version,omitempty"`     // 版本名称
+	Build       int         `json:"build,omitempty"`       // 版本号
+	Icon        image.Image `json:"icon,omitempty"`        // app icon
+	Size        int64       `json:"size,omitempty"`        // app size in bytes
+	CertInfo    CertInfo    `json:"certInfo,omitempty"`    // app 证书信息
+	Md5         string      `json:"md5,omitempty"`         // app md5
+	SupportOS64 bool        `json:"supportOS64,omitempty"` // 是否支持64位
+	SupportOS32 bool        `json:"supportOS32,omitempty"` // 是否支持32位
+	Permissions []string    `json:"permissions,omitempty"` // 权限列表
+}
+type CertInfo struct {
+	Md5                string    `json:"md5,omitempty"`
+	Sha1               string    `json:"sha1,omitempty"`
+	Sha256             string    `json:"sha256,omitempty"`
+	ValidFrom          time.Time `json:"validFrom,omitempty"`
+	ValidTo            time.Time `json:"validTo,omitempty"`
+	Issuer             string    `json:"issuer,omitempty"`
+	Subject            string    `json:"subject,omitempty"`
+	SignatureAlgorithm string    `json:"signatureAlgorithm,omitempty"`
+	SerialNumber       *big.Int  `json:"serialNumber,omitempty"`
+}
+```
 
 apk 证书相关信息的获取， 来自 [avast/apkparser](https://github.com/avast/apkparser)，本项目整合了 `avast/apkparser`的能力。
 
 ### 依赖
 
 -   操作系统： 不限
--   编程语言： golang、shell
+-   编程语言： golang
 -   库和框架： 不限
 
 ### 安装
