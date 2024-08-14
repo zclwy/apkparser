@@ -191,7 +191,7 @@ func IsResID(s string) bool {
 // ParseResID parses ResId.
 func ParseResID(s string) (ResID, error) {
 	if !IsResID(s) {
-		return 0, fmt.Errorf("androidbinary: %s is not ResID", s)
+		return 0, fmt.Errorf("apkparser: %s is not ResID", s)
 	}
 	id, err := strconv.ParseUint(s[3:], 16, 32)
 	if err != nil {
@@ -272,12 +272,12 @@ func (p *TablePackage) findEntry(typeIndex, entryIndex int, config *ResTableConf
 func (f *TableFile) GetResource(id ResID, config *ResTableConfig) (interface{}, error) {
 	p := f.findPackage(id.Package())
 	if p == nil {
-		return nil, fmt.Errorf("androidbinary: package 0x%02X not found", id.Package())
+		return nil, fmt.Errorf("apkparser: package 0x%02X not found", id.Package())
 	}
 	e := p.findEntry(id.Type(), id.Entry(), config)
 	v := e.Value
 	if v == nil {
-		return nil, fmt.Errorf("androidbinary: entry 0x%04X not found", id.Entry())
+		return nil, fmt.Errorf("apkparser: entry 0x%04X not found", id.Entry())
 	}
 	switch v.DataType {
 	case TypeNull:

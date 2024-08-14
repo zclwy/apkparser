@@ -61,7 +61,7 @@ type Permission struct {
 	Name string `xml:"name,attr"`
 }
 
-func NewAppParser(name string) (*AppInfo, error) {
+func New(name string) (*AppInfo, error) {
 	file, err := os.Open(name)
 	if err != nil {
 		return nil, err
@@ -197,7 +197,11 @@ func parseApkIconAndLabel(name string) (image.Image, string, error) {
 		Density: 720,
 	})
 
-	label, _ := pkg.label(nil)
+	// label, _ := pkg.label(&ResTableConfig{
+	// 	// Language: [2]uint8{'z', 'h'},
+	// 	// Country: [2]uint8{'C', 'N'},
+	// })
+	label, _ := pkg.label(&ResTableConfig{})
 
 	return icon, label, nil
 }
