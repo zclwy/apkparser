@@ -8,13 +8,14 @@ import (
 	"testing"
 )
 
-func TestNewAppParser(t *testing.T) {
+func TestAppParser(t *testing.T) {
 	apkFile := "testdata/helloworld.apk"
-	app, err := NewAppParser(apkFile)
+	app, err := New(apkFile)
 	if err != nil {
 		t.Log(err)
 		return
 	}
+	fmt.Printf("Name: %v\n", app.Name)
 	fmt.Printf("BundleId: %v\n", app.BundleId)
 	fmt.Printf("Md5: %v\n", app.Md5)
 	fmt.Printf("Signature md5: %v\n", app.CertInfo.Md5)
