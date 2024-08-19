@@ -197,11 +197,11 @@ func parseApkIconAndLabel(name string) (image.Image, string, error) {
 		Density: 720,
 	})
 
-	// label, _ := pkg.label(&ResTableConfig{
-	// 	// Language: [2]uint8{'z', 'h'},
-	// 	// Country: [2]uint8{'C', 'N'},
-	// })
-	label, _ := pkg.label(&ResTableConfig{})
+	label, _ := pkg.label(&ResTableConfig{
+		Language: [2]uint8{'z', 'h'},
+		Country:  [2]uint8{'C', 'N'},
+	})
+	// label, _ := pkg.label(&ResTableConfig{})
 
 	return icon, label, nil
 }
