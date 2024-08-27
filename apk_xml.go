@@ -87,5 +87,10 @@ type apkManifest struct {
 	VersionName string             `xml:"versionName,attr"`
 	App         apkApplication     `xml:"application"`
 	Instrument  apkInstrumentation `xml:"instrumentation"`
+	Permissions []permission       `xml:"uses-permission"`
 	SDK         apkUsesSDK         `xml:"uses-sdk"`
+}
+
+type permission struct {
+	Name string `xml:"name,attr"`
 }
