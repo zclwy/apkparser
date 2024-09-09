@@ -15,7 +15,7 @@ type AppInfo struct {
 	Name             string      `json:"name,omitempty"`        // 应用名称
 	BundleId         string      `json:"bundleId,omitempty"`    // 包名
 	Version          string      `json:"version,omitempty"`     // 版本名称
-	Build            int         `json:"build,omitempty"`       // 版本号
+	Build            int64       `json:"build,omitempty"`       // 版本号
 	Icon             image.Image `json:"icon,omitempty"`        // app icon
 	Size             int64       `json:"size,omitempty"`        // app size in bytes
 	CertInfo         CertInfo    `json:"certInfo,omitempty"`    // app 证书信息

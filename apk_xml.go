@@ -83,7 +83,7 @@ type apkUsesSDK struct {
 // apkManifest is a apkManifest of an APK.
 type apkManifest struct {
 	Package     string             `xml:"package,attr"`
-	VersionCode int                `xml:"versionCode,attr"`
+	VersionCode int64              `xml:"versionCode,attr"`
 	VersionName string             `xml:"versionName,attr"`
 	App         apkApplication     `xml:"application"`
 	Instrument  apkInstrumentation `xml:"instrumentation"`
