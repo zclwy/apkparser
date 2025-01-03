@@ -22,9 +22,9 @@ type AppInfo struct {
 	SupportOS64      bool        `json:"supportOS64,omitempty"` // 是否支持64位
 	SupportOS32      bool        `json:"supportOS32,omitempty"` // 是否支持32位
 	Permissions      []string    `json:"permissions,omitempty"` // 权限列表
-	MinSdkVersion    int         `json:"minSdkVersion"`         // 最小支持sdk版本
-	MaxSdkVersion    int         `json:"maxSdkVersion"`         // 最大支持sdk版本
-	TargetSdkVersion int         `json:"targetSdkVersion"`      // 目标sdk版本
+	MinSdkVersion    int         `json:"minSdkVersion"`         // 最小兼容rom版本
+	MaxSdkVersion    int         `json:"maxSdkVersion"`         // 最大兼容rom版本
+	TargetSdkVersion int         `json:"targetSdkVersion"`      // 推荐rom版本
 }
 type CertInfo struct {
 	Md5                string    `json:"md5,omitempty"`
