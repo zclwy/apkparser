@@ -17,7 +17,7 @@ type AppInfo struct {
 	Build            int64       `json:"build,omitempty"`       // 版本号
 	Icon             image.Image `json:"icon,omitempty"`        // app icon
 	Size             int64       `json:"size,omitempty"`        // app size in bytes
-	CertInfo         CertInfo    `json:"certInfo,omitempty"`    // app 证书信息
+	CertInfo         *CertInfo    `json:"certInfo,omitempty"`    // app 证书信息
 	Md5              string      `json:"md5,omitempty"`         // app md5
 	SupportOS64      bool        `json:"supportOS64,omitempty"` // 是否支持64位
 	SupportOS32      bool        `json:"supportOS32,omitempty"` // 是否支持32位
