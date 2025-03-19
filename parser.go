@@ -18,7 +18,7 @@ type AppInfo struct {
 	Build            int64       `json:"build,omitempty"`       // 版本号
 	Icon             image.Image `json:"icon,omitempty"`        // app icon
 	Size             int64       `json:"size,omitempty"`        // app size in bytes
-	CertInfo         CertInfo    `json:"certInfo,omitempty"`    // app 证书信息
+	CertInfo         *CertInfo    `json:"certInfo,omitempty"`    // app 证书信息
 	Md5              string      `json:"md5,omitempty"`         // app md5
 	SupportOS64      bool        `json:"supportOS64,omitempty"` // 是否支持64位
 	SupportOS32      bool        `json:"supportOS32,omitempty"` // 是否支持32位
@@ -45,7 +45,11 @@ func New(name string) (*AppInfo, error) {
 		return nil, err
 	}
 
-	certInfo, _ := getSignature(name)
+	// 获取证书信息
+	certInfo, errCert := getSignature(name)
+	if errCert != nil {
+            return nil, errCert
+	}
 
 	return &AppInfo{
 		Name:             infoApk.parseApkLabel(),
@@ -66,18 +70,18 @@ func New(name string) (*AppInfo, error) {
 }
 
 // 获取apk签名
-func getSignature(apkPath string) (CertInfo, error) {
+func getSignature(apkPath string) (*CertInfo, error) {
 	res, err := apkverifier.Verify(apkPath, nil)
 	if err != nil {
-		return CertInfo{}, err
+		return nil, err
 	}
 
 	cert, _ := apkverifier.PickBestApkCert(res.SignerCerts)
 	if cert == nil {
-		return CertInfo{}, errors.New("no certificate found")
+		return nil, errors.New("no certificate found")
 	}
 
-	return CertInfo{
+	return &CertInfo{
 		Md5:    cert.Md5,
 		Sha1:   cert.Sha1,
 		Sha256: cert.Sha256,
