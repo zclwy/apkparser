@@ -17,6 +17,7 @@ func TestAppParser(t *testing.T) {
 	}
 	fmt.Printf("Name: %v\n", app.Name)
 	fmt.Printf("BundleId: %v\n", app.BundleId)
+	fmt.Printf("Version: %v\n", app.Version)
 	fmt.Printf("Build: %v\n", app.Build)
 	fmt.Printf("Md5: %v\n", app.Md5)
 	fmt.Printf("Signature md5: %v\n", app.CertInfo.Md5)
