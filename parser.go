@@ -89,6 +89,11 @@ func getSignature(apk *apk) (*CertInfo, error) {
 		int32(apk.apkManifest.SDK.Min),
 		int32(maxSdkVersion),
 	)
+	if err != nil {
+		return nil, err
+	}
+
+	cert, _ := apkverifier.PickBestApkCert(res.SignerCerts)
 	if cert == nil {
 		return nil, errors.New("no certificate found")
 	}

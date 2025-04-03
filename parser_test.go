@@ -1,7 +1,6 @@
 package apkparser
 
 import (
-	"fmt"
 	"image/png"
 	"log"
 	"os"
@@ -12,7 +11,7 @@ func TestAppParser(t *testing.T) {
 	apkFile := "testdata/helloworld.apk"
 	app, err := New(apkFile)
 	if err != nil {
-		t.Log(err)
+		t.Error(err)
 		return
 	}
 	t.Logf("Name: %v\n", app.Name)
