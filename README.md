@@ -53,7 +53,7 @@ apk 证书相关信息的获取， 来自 [avast/apkparser](https://github.com/a
 
 ## 贡献和许可
 
-apk-parse 项目欢迎任何形式的贡献。如果您想要为该项目贡献代码或者报告某个问题，请提交一个 issue 或者一个 pull request。
+apkparser 项目欢迎任何形式的贡献。如果您想要为该项目贡献代码或者报告某个问题，请提交一个 issue 或者一个 pull request。
 
 ### 许可
 

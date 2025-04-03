@@ -3,7 +3,9 @@ package apkparser
 import (
 	"errors"
 	"image"
+	"math"
 
+	ap "github.com/avast/apkparser"
 	"github.com/avast/apkverifier"
 )
 
@@ -18,7 +20,7 @@ type AppInfo struct {
 	Build            int64       `json:"build,omitempty"`       // 版本号
 	Icon             image.Image `json:"icon,omitempty"`        // app icon
 	Size             int64       `json:"size,omitempty"`        // app size in bytes
-	CertInfo         *CertInfo    `json:"certInfo,omitempty"`    // app 证书信息
+	CertInfo         *CertInfo   `json:"certInfo,omitempty"`    // app 证书信息
 	Md5              string      `json:"md5,omitempty"`         // app md5
 	SupportOS64      bool        `json:"supportOS64,omitempty"` // 是否支持64位
 	SupportOS32      bool        `json:"supportOS32,omitempty"` // 是否支持32位
@@ -46,9 +48,9 @@ func New(name string) (*AppInfo, error) {
 	}
 
 	// 获取证书信息
-	certInfo, errCert := getSignature(name)
+	certInfo, errCert := getSignature(infoApk)
 	if errCert != nil {
-            return nil, errCert
+		return nil, errCert
 	}
 
 	return &AppInfo{
@@ -70,13 +72,23 @@ func New(name string) (*AppInfo, error) {
 }
 
 // 获取apk签名
-func getSignature(apkPath string) (*CertInfo, error) {
-	res, err := apkverifier.Verify(apkPath, nil)
+func getSignature(apk *apk) (*CertInfo, error) {
+	// res, err := apkverifier.Verify(apkPath, nil)
+	optionalZip, err := ap.OpenZipReader(apk.f)
 	if err != nil {
 		return nil, err
 	}
-
-	cert, _ := apkverifier.PickBestApkCert(res.SignerCerts)
+	defer optionalZip.Close()
+	maxSdkVersion := apk.apkManifest.SDK.Max
+	if maxSdkVersion == 0 {
+		maxSdkVersion = math.MaxInt32
+	}
+	res, err := apkverifier.VerifyWithSdkVersionReader(
+		apk.f,
+		optionalZip,
+		int32(apk.apkManifest.SDK.Min),
+		int32(maxSdkVersion),
+	)
 	if cert == nil {
 		return nil, errors.New("no certificate found")
 	}
