@@ -15,12 +15,15 @@ func TestAppParser(t *testing.T) {
 		t.Log(err)
 		return
 	}
-	fmt.Printf("Name: %v\n", app.Name)
-	fmt.Printf("BundleId: %v\n", app.BundleId)
-	fmt.Printf("Version: %v\n", app.Version)
-	fmt.Printf("Build: %v\n", app.Build)
-	fmt.Printf("Md5: %v\n", app.Md5)
-	fmt.Printf("Signature md5: %v\n", app.CertInfo.Md5)
+	t.Logf("Name: %v\n", app.Name)
+	t.Logf("BundleId: %v\n", app.BundleId)
+	t.Logf("Version: %v\n", app.Version)
+	t.Logf("Build: %v\n", app.Build)
+	t.Logf("MinSdkVersion: %v\n", app.MinSdkVersion)
+	t.Logf("TargetSdkVersion: %v\n", app.TargetSdkVersion)
+	t.Logf("MaxSdkVersion: %v\n", app.MaxSdkVersion)
+	t.Logf("Md5: %v\n", app.Md5)
+	t.Logf("Signature md5: %v\n", app.CertInfo.Md5)
 
 	if app.Icon != nil {
 		// 生成png的icon
