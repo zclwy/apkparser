@@ -46,7 +46,8 @@ func New(name string) (*AppInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-
+	// 释放资源
+	defer infoApk.close()
 	// 获取证书信息
 	certInfo, errCert := getSignature(infoApk)
 	if errCert != nil {
