@@ -1,4 +1,4 @@
-module github.com/zclwy/apkparser
+module github.com/juanlianyangyang/apkparser
 
 go 1.19
 
