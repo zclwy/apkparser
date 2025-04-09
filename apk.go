@@ -36,10 +36,12 @@ func openFile(filename string) (apk *apk, err error) {
 	}
 	fi, err := f.Stat()
 	if err != nil {
+		f.Close()
 		return nil, err
 	}
 	apk, err = openZipReader(f, fi.Size())
 	if err != nil {
+		f.Close()
 		return nil, err
 	}
 	apk.f = f
