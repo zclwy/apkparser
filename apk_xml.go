@@ -68,9 +68,9 @@ type apkApplication struct {
 	TestOnly              bool                  `xml:"testOnly,attr"`
 	Theme                 string                `xml:"theme,attr"`
 	UIOptions             string                `xml:"uiOptions,attr"`
-	VMSafeMode            bool                  `xml:"vmSafeMode,attr"`
 	Activities            []apkAppActivity      `xml:"activity"`
 	ActivityAliases       []apkAppActivityAlias `xml:"activity-alias"`
+	// VMSafeMode            bool                  `xml:"vmSafeMode,attr"`
 }
 
 // apkUsesSDK is target SDK version.
