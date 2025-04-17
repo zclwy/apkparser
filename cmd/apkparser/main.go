@@ -15,7 +15,7 @@ func main() {
 	}
 
 	apkFile := os.Args[1]
-	app, err := apkparser.New(apkFile, Option{
+	app, err := apkparser.New(apkFile, apkparser.Option{
 		WithIcon:             true,
 		WithSignature:        true,
 		IgnoreSignatureError: true,
