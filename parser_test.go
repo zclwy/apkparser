@@ -9,7 +9,11 @@ import (
 
 func TestAppParser(t *testing.T) {
 	apkFile := "testdata/helloworld.apk"
-	app, err := New(apkFile)
+	app, err := New(apkFile, Option{
+		WithIcon:             true,
+		WithSignature:        true,
+		IgnoreSignatureError: true,
+	})
 	if err != nil {
 		t.Error(err)
 		return
