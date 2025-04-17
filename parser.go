@@ -41,27 +41,26 @@ type CertInfo struct {
 	// SerialNumber       *big.Int  `json:"serialNumber,omitempty"`
 }
 
-func New(name string) (*AppInfo, error) {
+type Option struct {
+	WithSignature        bool // 是否需要获取签名信息
+	IgnoreSignatureError bool // 是否忽略签名错误，默认不忽略
+	WithIcon             bool // 是否需要获取icon信息
+}
+
+func New(name string, option Option) (*AppInfo, error) {
 	infoApk, err := openFile(name)
 	if err != nil {
 		return nil, err
 	}
 	// 释放资源
 	defer infoApk.close()
-	// 获取证书信息
-	certInfo, errCert := getSignature(infoApk)
-	if errCert != nil {
-		return nil, errCert
-	}
 
-	return &AppInfo{
+	info := &AppInfo{
 		Name:             infoApk.parseApkLabel(),
 		BundleId:         infoApk.apkManifest.Package,
 		Version:          infoApk.apkManifest.VersionName,
 		Build:            infoApk.apkManifest.VersionCode,
-		Icon:             infoApk.parseApkIcon(),
 		Size:             infoApk.size,
-		CertInfo:         certInfo,
 		Md5:              infoApk.md5,
 		SupportOS64:      infoApk.supportOs64,
 		SupportOS32:      infoApk.supportOs32,
@@ -69,7 +68,25 @@ func New(name string) (*AppInfo, error) {
 		MinSdkVersion:    infoApk.apkManifest.SDK.Min,
 		MaxSdkVersion:    infoApk.apkManifest.SDK.Max,
 		TargetSdkVersion: infoApk.apkManifest.SDK.Target,
-	}, nil
+	}
+
+	// 获取证书信息
+	if option.WithSignature {
+		certInfo, errCert := getSignature(infoApk)
+		if errCert != nil {
+			if !option.IgnoreSignatureError {
+				return nil, errCert
+			}
+		} else {
+			info.CertInfo = certInfo
+		}
+	}
+	if option.WithIcon {
+		// 获取icon信息
+		info.Icon = infoApk.parseApkIcon()
+	}
+
+	return info, nil
 }
 
 // 获取apk签名

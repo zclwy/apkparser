@@ -52,7 +52,6 @@ type apkApplication struct {
 	HardwareAccelerated   bool                  `xml:"hardwareAccelerated,attr"`
 	Icon                  string                `xml:"icon,attr"`
 	KillAfterRestore      bool                  `xml:"killAfterRestore,attr"`
-	LargeHeap             bool                  `xml:"largeHeap,attr"`
 	Label                 string                `xml:"label,attr"`
 	Logo                  string                `xml:"logo,attr"`
 	ManageSpaceActivity   string                `xml:"manageSpaceActivity,attr"`
@@ -71,6 +70,7 @@ type apkApplication struct {
 	Activities            []apkAppActivity      `xml:"activity"`
 	ActivityAliases       []apkAppActivityAlias `xml:"activity-alias"`
 	// VMSafeMode            bool                  `xml:"vmSafeMode,attr"`
+	// LargeHeap             bool                  `xml:"largeHeap,attr"`
 }
 
 // apkUsesSDK is target SDK version.
