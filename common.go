@@ -139,7 +139,7 @@ func readStringPool(sr *io.SectionReader) (*ResStringPool, error) {
 	for i, start := range stringStarts {
 		var str string
 		var err error
-		if _, err := sr.Seek(int64(sp.Header.StringStart+start), seekStart); err != nil {
+		if _, err = sr.Seek(int64(sp.Header.StringStart+start), seekStart); err != nil {
 			return nil, err
 		}
 		if (sp.Header.Flags & UTF8Flag) == 0 {

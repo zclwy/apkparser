@@ -58,12 +58,15 @@ func openZipReader(r *os.File, size int64) (*apk, error) {
 	apk := &apk{
 		zipReader: zipReader,
 	}
-	if err = apk.parseManifest(); err != nil {
-		return nil, errors.New("parse-apkManifest:" + err.Error())
-	}
+
 	if err = apk.parseResources(); err != nil {
 		return nil, err
 	}
+
+	if err = apk.parseManifest(); err != nil {
+		return nil, errors.New("parse-apkManifest:" + err.Error())
+	}
+
 	apk.parseOsSupport(zipReader)
 	apk.getApkMd5(r)
 
@@ -147,7 +150,59 @@ func (k *apk) parseManifest() error {
 	if err != nil {
 		return err
 	}
-	return xml.Unmarshal(data, &k.apkManifest)
+
+	// 新增临时解析逻辑
+	var tmp tempManifest
+	if err := xml.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
+
+	// 转换特定属性的类型
+	hardwareAccelerated := k.parseBool(tmp.App.HardwareAccelerated)
+	vMSafeMode := k.parseBool(tmp.App.VMSafeMode)
+	largeHeap := k.parseBool(tmp.App.LargeHeap)
+
+	k.apkManifest = apkManifest{
+		Package:     tmp.Package,
+		VersionCode: tmp.VersionCode,
+		VersionName: tmp.VersionName,
+		App: apkApplication{
+			AllowTaskReParenting:  tmp.App.AllowTaskReParenting,
+			AllowBackup:           tmp.App.AllowBackup,
+			BackupAgent:           tmp.App.BackupAgent,
+			Debuggable:            tmp.App.Debuggable,
+			Description:           tmp.App.Description,
+			Enabled:               tmp.App.Enabled,
+			HasCode:               tmp.App.HasCode,
+			HardwareAccelerated:   hardwareAccelerated,
+			Icon:                  tmp.App.Icon,
+			KillAfterRestore:      tmp.App.KillAfterRestore,
+			Label:                 tmp.App.Label,
+			Logo:                  tmp.App.Logo,
+			ManageSpaceActivity:   tmp.App.ManageSpaceActivity,
+			Name:                  tmp.App.Name,
+			Permission:            tmp.App.Permission,
+			Persistent:            tmp.App.Persistent,
+			Process:               tmp.App.Process,
+			RestoreAnyVersion:     tmp.App.RestoreAnyVersion,
+			RequiredAccountType:   tmp.App.RequiredAccountType,
+			RestrictedAccountType: tmp.App.RestrictedAccountType,
+			SupportsRtl:           tmp.App.SupportsRtl,
+			TaskAffinity:          tmp.App.TaskAffinity,
+			TestOnly:              tmp.App.TestOnly,
+			Theme:                 tmp.App.Theme,
+			UIOptions:             tmp.App.UIOptions,
+			Activities:            tmp.App.Activities,
+			ActivityAliases:       tmp.App.ActivityAliases,
+			VMSafeMode:            vMSafeMode,
+			LargeHeap:             largeHeap,
+		},
+		Instrument:  tmp.Instrument,
+		Permissions: tmp.Permissions,
+		SDK:         tmp.SDK,
+	}
+
+	return nil
 }
 
 func (k *apk) parseResources() (err error) {
@@ -169,6 +224,29 @@ func (k *apk) getResource(id string, resConfig *ResTableConfig) string {
 		return id
 	}
 	return fmt.Sprintf("%s", val)
+}
+
+func (k *apk) getResourceToBool(id string, resConfig *ResTableConfig) bool {
+	resID, err := ParseResID(id)
+	if err != nil {
+		return false
+	}
+	val, err := k.table.GetResource(resID, resConfig)
+	if err != nil {
+		return false
+	}
+
+	switch v := val.(type) {
+	case bool:
+		return v
+	case int:
+		return v != 0
+	case string:
+		if b, err := strconv.ParseBool(v); err == nil {
+			return b
+		}
+	}
+	return false
 }
 
 func (k *apk) readZipFile(name string) (data []byte, err error) {
@@ -261,4 +339,14 @@ func (k *apk) parseApkIcon() image.Image {
 	})
 
 	return icon
+}
+
+func (k *apk) parseBool(val string) bool {
+	if IsResID(val) {
+		// 资源ID解析
+		return k.getResourceToBool(val, nil)
+	}
+
+	b, _ := strconv.ParseBool(val)
+	return b
 }

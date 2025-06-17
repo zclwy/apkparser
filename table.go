@@ -310,7 +310,7 @@ func (f *TableFile) readChunk(r io.ReaderAt, offset int64) (*ResChunkHeader, err
 	}
 
 	var err error
-	if _, err := sr.Seek(0, seekStart); err != nil {
+	if _, err = sr.Seek(0, seekStart); err != nil {
 		return nil, err
 	}
 	switch chunkHeader.Type {
