@@ -48,6 +48,9 @@ type Option struct {
 	WithSignature        bool // 是否需要获取签名信息
 	IgnoreSignatureError bool // 是否忽略签名错误，默认不忽略
 	WithIcon             bool // 是否需要获取icon信息
+	WithMd5              bool
+	WithSha1             bool
+	WithSha256           bool
 }
 
 func New(name string, option Option) (*AppInfo, error) {
@@ -69,6 +72,7 @@ func NewFromReader(f *os.File, option Option) (*AppInfo, error) {
 }
 
 func getApkInfo(infoApk *apk, option Option) (*AppInfo, error) {
+	getApkHash(infoApk, option)
 	info := &AppInfo{
 		Name:             infoApk.parseApkLabel(),
 		BundleId:         infoApk.apkManifest.Package,
@@ -151,4 +155,18 @@ func formatPermissions(permissions []permission) []string {
 	}
 
 	return result
+}
+
+func getApkHash(apk *apk, option Option) {
+	var hashOptions []string
+	if option.WithMd5 {
+		hashOptions = append(hashOptions, "md5")
+	}
+	if option.WithSha1 {
+		hashOptions = append(hashOptions, "sha1")
+	}
+	if option.WithSha256 {
+		hashOptions = append(hashOptions, "sha256")
+	}
+	apk.getApkHash(apk.f, hashOptions...)
 }

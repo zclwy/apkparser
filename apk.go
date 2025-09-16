@@ -10,6 +10,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"hash"
 	"image"
 	_ "image/jpeg" // handle jpeg format
 	_ "image/png"  // handle png format
@@ -89,7 +90,7 @@ func openZipReader(r *os.File, size int64) (*apk, error) {
 	}
 
 	apk.parseOsSupport(zipReader)
-	apk.getApkHash(r)
+	//apk.getApkHash(r)
 
 	return apk, nil
 }
@@ -342,16 +343,36 @@ func (k *apk) getApkMd5(file *os.File) {
 	k.md5 = fmt.Sprintf("%032x", hash.Sum(nil))
 }
 
-func (k *apk) getApkHash(file *os.File) {
-	md5Hasher := md5.New()
-	sha1Hasher := sha1.New()
-	sha256Hasher := sha256.New()
-	if _, err := io.Copy(io.MultiWriter(md5Hasher, sha1Hasher, sha256Hasher), file); err != nil {
+func (k *apk) getApkHash(file *os.File, hashOptions ...string) {
+	hashers := make(map[string]hash.Hash)
+	writers := make([]io.Writer, 0)
+	for _, name := range hashOptions {
+		switch name {
+		case "md5":
+			hashers["md5"] = md5.New()
+		case "sha1":
+			hashers["sha1"] = sha1.New()
+		case "sha256":
+			hashers["sha256"] = sha256.New()
+		}
+	}
+	for _, hasher := range hashers {
+		writers = append(writers, hasher)
+	}
+	multiWriter := io.MultiWriter(writers...)
+	if _, err := io.Copy(multiWriter, file); err != nil {
 		return
 	}
-	k.md5 = hex.EncodeToString(md5Hasher.Sum(nil))
-	k.sha1 = hex.EncodeToString(sha1Hasher.Sum(nil))
-	k.sha256 = hex.EncodeToString(sha256Hasher.Sum(nil))
+	for name, hasher := range hashers {
+		switch name {
+		case "md5":
+			k.md5 = hex.EncodeToString(hasher.Sum(nil))
+		case "sha1":
+			k.sha1 = hex.EncodeToString(hasher.Sum(nil))
+		case "sha256":
+			k.sha256 = hex.EncodeToString(hasher.Sum(nil))
+		}
+	}
 }
 
 // 解析apk名称

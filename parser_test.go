@@ -13,6 +13,9 @@ func TestAppParser(t *testing.T) {
 		WithIcon:             true,
 		WithSignature:        true,
 		IgnoreSignatureError: true,
+		WithMd5:              true,
+		WithSha1:             true,
+		WithSha256:           true,
 	})
 	if err != nil {
 		t.Error(err)
@@ -59,6 +62,9 @@ func TestAppParser_NewFromReader(t *testing.T) {
 		WithIcon:             true,
 		WithSignature:        true,
 		IgnoreSignatureError: true,
+		WithMd5:              true,
+		WithSha1:             true,
+		WithSha256:           true,
 	})
 	if err != nil {
 		t.Error(err)
