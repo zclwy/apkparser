@@ -4,6 +4,9 @@ import (
 	"archive/zip"
 	"bytes"
 	"crypto/md5"
+	"crypto/sha1"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -25,6 +28,8 @@ type apk struct {
 	supportOs32 bool
 	supportOs64 bool
 	md5         string
+	sha1        string
+	sha256      string
 	size        int64
 }
 
@@ -34,6 +39,22 @@ func openFile(filename string) (apk *apk, err error) {
 	if err != nil {
 		return nil, err
 	}
+	fi, err := f.Stat()
+	if err != nil {
+		f.Close()
+		return nil, err
+	}
+	apk, err = openZipReader(f, fi.Size())
+	if err != nil {
+		f.Close()
+		return nil, err
+	}
+	apk.f = f
+	apk.size = fi.Size()
+	return
+}
+
+func openReader(f *os.File) (apk *apk, err error) {
 	fi, err := f.Stat()
 	if err != nil {
 		f.Close()
@@ -68,7 +89,7 @@ func openZipReader(r *os.File, size int64) (*apk, error) {
 	}
 
 	apk.parseOsSupport(zipReader)
-	apk.getApkMd5(r)
+	apk.getApkHash(r)
 
 	return apk, nil
 }
@@ -319,6 +340,18 @@ func (k *apk) getApkMd5(file *os.File) {
 	}
 
 	k.md5 = fmt.Sprintf("%032x", hash.Sum(nil))
+}
+
+func (k *apk) getApkHash(file *os.File) {
+	md5Hasher := md5.New()
+	sha1Hasher := sha1.New()
+	sha256Hasher := sha256.New()
+	if _, err := io.Copy(io.MultiWriter(md5Hasher, sha1Hasher, sha256Hasher), file); err != nil {
+		return
+	}
+	k.md5 = hex.EncodeToString(md5Hasher.Sum(nil))
+	k.sha1 = hex.EncodeToString(sha1Hasher.Sum(nil))
+	k.sha256 = hex.EncodeToString(sha256Hasher.Sum(nil))
 }
 
 // 解析apk名称

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"image"
 	"math"
+	"os"
 
 	ap "github.com/avast/apkparser"
 	"github.com/avast/apkverifier"
@@ -14,14 +15,16 @@ const (
 )
 
 type AppInfo struct {
-	Name             string      `json:"name,omitempty"`        // 应用名称
-	BundleId         string      `json:"bundleId,omitempty"`    // 包名
-	Version          string      `json:"version,omitempty"`     // 版本名称
-	Build            int64       `json:"build,omitempty"`       // 版本号
-	Icon             image.Image `json:"icon,omitempty"`        // app icon
-	Size             int64       `json:"size,omitempty"`        // app size in bytes
-	CertInfo         *CertInfo   `json:"certInfo,omitempty"`    // app 证书信息
-	Md5              string      `json:"md5,omitempty"`         // app md5
+	Name             string      `json:"name,omitempty"`     // 应用名称
+	BundleId         string      `json:"bundleId,omitempty"` // 包名
+	Version          string      `json:"version,omitempty"`  // 版本名称
+	Build            int64       `json:"build,omitempty"`    // 版本号
+	Icon             image.Image `json:"icon,omitempty"`     // app icon
+	Size             int64       `json:"size,omitempty"`     // app size in bytes
+	CertInfo         *CertInfo   `json:"certInfo,omitempty"` // app 证书信息
+	Md5              string      `json:"md5,omitempty"`      // app md5
+	Sha1             string      `json:"sha1,omitempty"`
+	Sha256           string      `json:"sha256,omitempty"`
 	SupportOS64      bool        `json:"supportOS64,omitempty"` // 是否支持64位
 	SupportOS32      bool        `json:"supportOS32,omitempty"` // 是否支持32位
 	Permissions      []string    `json:"permissions,omitempty"` // 权限列表
@@ -54,7 +57,18 @@ func New(name string, option Option) (*AppInfo, error) {
 	}
 	// 释放资源
 	defer infoApk.close()
+	return getApkInfo(infoApk, option)
+}
 
+func NewFromReader(f *os.File, option Option) (*AppInfo, error) {
+	infoApk, err := openReader(f)
+	if err != nil {
+		return nil, err
+	}
+	return getApkInfo(infoApk, option)
+}
+
+func getApkInfo(infoApk *apk, option Option) (*AppInfo, error) {
 	info := &AppInfo{
 		Name:             infoApk.parseApkLabel(),
 		BundleId:         infoApk.apkManifest.Package,
@@ -62,6 +76,8 @@ func New(name string, option Option) (*AppInfo, error) {
 		Build:            infoApk.apkManifest.VersionCode,
 		Size:             infoApk.size,
 		Md5:              infoApk.md5,
+		Sha1:             infoApk.sha1,
+		Sha256:           infoApk.sha256,
 		SupportOS64:      infoApk.supportOs64,
 		SupportOS32:      infoApk.supportOs32,
 		Permissions:      formatPermissions(infoApk.apkManifest.Permissions),
@@ -85,7 +101,6 @@ func New(name string, option Option) (*AppInfo, error) {
 		// 获取icon信息
 		info.Icon = infoApk.parseApkIcon()
 	}
-
 	return info, nil
 }
 
