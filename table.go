@@ -282,6 +282,8 @@ func (f *TableFile) GetResource(id ResID, config *ResTableConfig) (interface{}, 
 	switch v.DataType {
 	case TypeNull:
 		return nil, nil
+	case TypeReference:
+		return f.GetResource(ResID(v.Data), config)
 	case TypeString:
 		return f.GetString(ResStringPoolRef(v.Data)), nil
 	case TypeIntDec:
